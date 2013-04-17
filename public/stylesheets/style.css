@@ -1,0 +1,50 @@
+body{
+    background-attachment: fixed;
+    background-color: rgb(192, 222, 237);
+    background-image: url(https://si0.twimg.com/images/themes/theme1/bg.png);    
+    background-repeat: no-repeat;
+    color: rgb(51, 51, 51);   
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    line-height: 17px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 0px;
+    overflow-y: scroll;
+    padding: 5px 5px 5px 5px;
+}
+
+
+.tweet{
+    background-color: rgb(249, 249, 249);
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    color: rgb(51, 51, 51);
+    display: block;
+    font-family: Arial, sans-serif;    
+    padding: 11px 11px 11px 11px;
+    text-shadow: rgb(255, 255, 255) 0px 0px 0px;
+    width: 500px;
+    margin: 5px;
+}
+
+
+
+.stockData{
+    background-color: rgb(48, 48, 48);
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    color: rgb(51, 51, 51);
+    display: block;
+    color: LightGray;
+    font-family: Arial, sans-serif;    
+    padding: 11px 11px 11px 11px;
+    text-shadow: rgb(255, 255, 255) 0px 0px 0px;
+    width: 100;
+    margin: 5px;
+}

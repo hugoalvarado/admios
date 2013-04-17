@@ -1,11 +1,17 @@
-
 var express = require('express');
 var http = require("http");
 var io = require('socket.io');
+var Twit = require('twit');
+var OAuth= require('oauth').OAuth;
+
 var app = express();
 
-
-var OAuth= require('oauth').OAuth;
+var twitObj = new Twit({
+    consumer_key:         'Mq5nZDXjwtM5JTuvGRckOw'
+  , consumer_secret:      'BJKqFZaKFnI1ynLYixOXDBhGrEqLmb4IpPHSfUVFEA'
+  , access_token:         '1351190376-o4q56bHU3391Bv3MDSGGu1bB6ni86IJnbvmEIP5'
+  , access_token_secret:  'cUpPQFU3VsjDUC7ylpaGkKwvvUiY3a4vJ8t6IaBig'
+});
 
 var oa = new OAuth(
     "https://api.twitter.com/oauth/request_token",
@@ -13,8 +19,8 @@ var oa = new OAuth(
     "Mq5nZDXjwtM5JTuvGRckOw",
 	"BJKqFZaKFnI1ynLYixOXDBhGrEqLmb4IpPHSfUVFEA",
 	"1.0",
-	"http://admios.hugo506.c9.io/twitter_callback",
-	"HMAC-SHA1"	
+	"http://admiostest.hugo506.c9.io/twitter_callback",
+	"HMAC-SHA1"
 );
 
 
@@ -22,13 +28,14 @@ app.configure(function(){
   app.set('ip', process.env.IP);
   app.set('port', process.env.PORT || 8080);
   app.set('views', __dirname + '/views');
-  app.set('stylesheets', __dirname + '/stylesheets');
+  app.set('stylesheets', __dirname + '/public/stylesheets');
   app.set('view engine', 'jade');
+  app.use(express.static(__dirname + '/public'));
+  app.use(express.cookieParser());
+  app.use(express.session( { secret: 'whatever' } ));
+  app.use(express.bodyParser());
 });
 
-app.use(express.cookieParser());
-app.use(express.session( { secret: 'whatever' } ));
-app.use(express.bodyParser());
 
 app.get('/', function(req, res){
   res.render('index', {
@@ -42,16 +49,16 @@ app.get('/stock_check', function(req, res){
   });
 });
 
-app.post('/get_stock_data', function(req, res){ 
-  
+app.post('/get_stock_data', function(req, res){
+
   var symbol = req.body.symbol;
   var parseString = require('xml2js').parseString;
-  var options = { 
+  var options = {
       host: 'www.google.com',
       path: '/ig/api?stock='+symbol};
-  
+
   var request = http.get(options, function(response) {
-      
+
     var xmlData = "";
     response.setEncoding('utf8');
     response.on('data', function (chunk) {
@@ -63,17 +70,15 @@ app.post('/get_stock_data', function(req, res){
     response.on('end', function(){
       parseString(xmlData, function (err, result) {
           var symbolName = result.xml_api_reply.finance[0].exchange[0]['$']['data'];
-          
+
           if('UNKNOWN EXCHANGE' == symbolName){
-              res.send('Error invalid stock symbol');              
+              res.send({value:'Error invalid stock symbol'});
           }else{
-              res.send('Symbol is valid');
+              res.send({value:'Symbol is valid', stock:result.xml_api_reply.finance[0]});
           }
       });
-    });    
-
+    });
   });
-
 });
 
 
@@ -101,7 +106,7 @@ app.get('/twitter_callback', function(req, res, next){
 		req.session.oauth.verifier = req.query.oauth_verifier;
 		var oauth = req.session.oauth;
 
-		oa.getOAuthAccessToken(oauth.token,oauth.token_secret,oauth.verifier, 
+		oa.getOAuthAccessToken(oauth.token,oauth.token_secret,oauth.verifier,
 		function(error, oauth_access_token, oauth_access_token_secret, results){
 			if (error){
 				console.log(error);
@@ -120,42 +125,36 @@ app.get('/twitter_callback', function(req, res, next){
 	} else
 		next(new Error("you're not supposed to be here."))
 });
-  
+
 
 // create a server
 var server = http.createServer(app).listen(app.get('port'));
 
 
-//create the socket object
-var socket = io.listen(server);
+//create the socket object, use the main server
+var socketIo = require('socket.io').listen(server);
 
-socket.on('connection', function(socket) {
 
-    socket.emit('symbolTweet',{data:'test'});
+socketIo.on('connection', function(socket) {
 
-/*
-  var Twit = require('twit');
-  var T = new Twit({
-                    consumer_key:         'Mq5nZDXjwtM5JTuvGRckOw'
-                  , consumer_secret:      'BJKqFZaKFnI1ynLYixOXDBhGrEqLmb4IpPHSfUVFEA'
-                  , access_token:         '1351190376-bGasUCIjA2tYikn9LWUzGGXrPt8Pulm5uko72Ef'
-                  , access_token_secret:  'EHTMLB8295DjYEL1z3b6ffOz9neeFVK1ohBM7e7n4'
-                });
-
-  var stream = T.stream('statuses/filter', { track: 'mango' });//symbolName
-  
-  stream.on('tweet', function (tweet) {                  
-      //console.log(tweet.user.name+" says: "+tweet.text);    
-      socket.emit('symbolTweet',{data: tweet.user.name+" says: "+tweet.text});
-  });
-  */
-                
-  /*T.stream('statuses/filter', { track: symbolName },
-    function(stream) {
-      stream.on('data',function(data){
-        socket.emit('twitter',data);
+    socket.on('setSymbol', function (data) {
+      
+      //create a twitter stream with tweets about the specified stock symbol
+      var stream = twitObj.stream('statuses/filter', { track: data.symbol });
+      
+      //listen for tweets and forward to the client socket
+      stream.on('tweet', function (tweet) {
+        //console.log(tweet.user.name+" says: "+tweet.text);
+        socket.emit('symbolTweet',{value: tweet.user.name+" says: "+tweet.text});
       });
-    });*/
+      
+    });
+    /*
+    
+
+    
+    */
+
 });
 
 

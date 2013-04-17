@@ -7,12 +7,14 @@ block content
       input(type='submit', id='submit')
     
     
-    div
-      label#result
-      
+        
+    div#results
+        
     script(type='text/javascript')
       $("#submit").click(function() {
       
+        $("#results").html();
+        
         var data = {};
         data.symbol = $('#symbol').val();
         
@@ -22,18 +24,36 @@ block content
           contentType: 'application/json',
           url: '/get_stock_data',
           beforeSend: function () {
-            $("#result").html("Validating Symbol...");
+            $("#results").html("Validating Symbol...");
           },
           success: function(data) {
-            if('Error invalid stock symbol' == data){
-              $("#result").html("Invalid Symbol. Please enter a different stock smybol.");
+            if('Error invalid stock symbol' == data.value){
+              $("#results").html("Invalid Symbol. Please enter a different stock smybol.");
             }else{
-              $("#result").html(data);
+              $("#results").html(data.value);
               
-              var socket = io.connect(null,{port:8080});
-                                
+              
+              //{"$":{"module_id":"0","tab_id":"0","mobile_row":"0","mobile_zipped":"1","row":"0","section":"0"},"symbol":[{"$":{"data":"IBM"}}],"pretty_symbol":[{"$":{"data":"IBM"}}],"symbol_lookup_url":[{"$":{"data":"/finance?client=ig&q=IBM"}}],"company":[{"$":{"data":"International Business Machines Corp."}}],"exchange":[{"$":{"data":"NYSE"}}],"exchange_timezone":[{"$":{"data":"ET"}}],"exchange_utc_offset":[{"$":{"data":"+05:00"}}],"exchange_closing":[{"$":{"data":"960"}}],"divisor":[{"$":{"data":"2"}}],"currency":[{"$":{"data":"USD"}}],"last":[{"$":{"data":"212.00"}}],"high":[{"$":{"data":"212.00"}}],"low":[{"$":{"data":"209.20"}}],"volume":[{"$":{"data":"2860054"}}],"avg_volume":[{"$":{"data":"3615"}}],"market_cap":[{"$":{"data":"236276.07"}}],"open":[{"$":{"data":"210.84"}}],"y_close":[{"$":{"data":"209.26"}}],"change":[{"$":{"data":"+2.74"}}],"perc_change":[{"$":{"data":"1.31"}}],"delay":[{"$":{"data":"0"}}],"trade_timestamp":[{"$":{"data":"10 hours ago"}}],"trade_date_utc":[{"$":{"data":"20130416"}}],"trade_time_utc":[{"$":{"data":"200113"}}],"current_date_utc":[{"$":{"data":"20130417"}}],"current_time_utc":[{"$":{"data":"060617"}}],"symbol_url":[{"$":{"data":"/finance?client=ig&q=IBM"}}],"chart_url":[{"$":{"data":"/finance/chart?q=NYSE:IBM&tlf=12"}}],"disclaimer_url":[{"$":{"data":"/help/stock_disclaimer.html"}}],"ecn_url":[{"$":{"data":""}}],"isld_last":[{"$":{"data":"211.66"}}],"isld_trade_date_utc":[{"$":{"data":"20130416"}}],"isld_trade_time_utc":[{"$":{"data":"215822"}}],"brut_last":[{"$":{"data":""}}],"brut_trade_date_utc":[{"$":{"data":""}}],"brut_trade_time_utc":[{"$":{"data":""}}],"daylight_savings":[{"$":{"data":"true"}}]}
+              var stockData = '';
+              
+              for(var key in data.stock) {
+                if(key == '$') continue;
+                stockData = stockData + key +': '+ data.stock[key][0]['$']['data'] + ' ';
+              }
+                
+              $('#results').append('<div class="stockData">'+stockData+'</div>');   
+              
+              //$("#stockData").html(JSON.stringify(data.stock));
+              
+              var socket = io.connect();
+              
+              socket.on('connect', function () {
+                socket.emit('setSymbol', {symbol:$('#symbol').val()});
+              });
+                                                            
               socket.on('symbolTweet', function (data) {
-                console.log(data);
+                //alert(JSON.stringify(data));
+                $('#results').append('<span class="tweet">'+data.value+'</span>');                
               });
               
             }
