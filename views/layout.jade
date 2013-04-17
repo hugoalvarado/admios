@@ -1,0 +1,12 @@
+!!!5
+html
+  head    
+    title #{title} - Hugo Alvarado's Admios Test    
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    script(src='http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js');
+    script(src='/socket.io/socket.io.js');
+  body
+    header
+      h1 Twitter Stock Dashboard - #{title}
+    .container
+      block content

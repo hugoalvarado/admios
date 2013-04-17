@@ -1,0 +1,44 @@
+extend layout
+block content
+  #stock
+    div Enter the stock symbol to lookup:
+    div 
+      input(type='text',name='symbol', id='symbol')
+      input(type='submit', id='submit')
+    
+    
+    div
+      label#result
+      
+    script(type='text/javascript')
+      $("#submit").click(function() {
+      
+        var data = {};
+        data.symbol = $('#symbol').val();
+        
+        $.ajax({
+          type: 'POST', 
+          data: JSON.stringify(data),
+          contentType: 'application/json',
+          url: '/get_stock_data',
+          beforeSend: function () {
+            $("#result").html("Validating Symbol...");
+          },
+          success: function(data) {
+            if('Error invalid stock symbol' == data){
+              $("#result").html("Invalid Symbol. Please enter a different stock smybol.");
+            }else{
+              $("#result").html(data);
+              
+              var socket = io.connect(null,{port:8080});
+                                
+              socket.on('symbolTweet', function (data) {
+                console.log(data);
+              });
+              
+            }
+          }
+        });
+                    
+        
+      });
