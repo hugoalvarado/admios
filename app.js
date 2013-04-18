@@ -7,11 +7,11 @@ var OAuth= require('oauth').OAuth;
 var app = express();
 
 var twitObj = new Twit({
-    consumer_key:         'Mq5nZDXjwtM5JTuvGRckOw'
-  , consumer_secret:      'BJKqFZaKFnI1ynLYixOXDBhGrEqLmb4IpPHSfUVFEA'
-  , access_token:         '1351190376-o4q56bHU3391Bv3MDSGGu1bB6ni86IJnbvmEIP5'
-  , access_token_secret:  'cUpPQFU3VsjDUC7ylpaGkKwvvUiY3a4vJ8t6IaBig'
-});
+            consumer_key:         'Mq5nZDXjwtM5JTuvGRckOw'
+          , consumer_secret:      'BJKqFZaKFnI1ynLYixOXDBhGrEqLmb4IpPHSfUVFEA'
+          , access_token:         '1351190376-o4q56bHU3391Bv3MDSGGu1bB6ni86IJnbvmEIP5'
+          , access_token_secret:  'cUpPQFU3VsjDUC7ylpaGkKwvvUiY3a4vJ8t6IaBig'
+        });
 
 var oa = new OAuth(
     "https://api.twitter.com/oauth/request_token",
@@ -137,26 +137,43 @@ var socketIo = require('socket.io').listen(server);
 
 socketIo.on('connection', function(socket) {
 
+    var stream;
+    
     socket.on('setSymbol', function (data) {
       
+      
+
       //create a twitter stream with tweets about the specified stock symbol
-      var stream = twitObj.stream('statuses/filter', { track: data.symbol });
+      stream = twitObj.stream('statuses/filter', { track: data.symbol });
       
       //listen for tweets and forward to the client socket
       stream.on('tweet', function (tweet) {
         //console.log(tweet.user.name+" says: "+tweet.text);
-        socket.emit('symbolTweet',{value: tweet.user.name+" says: "+tweet.text});
+        socket.emit('symbolTweet',{name: tweet.user.name, tweetText: tweet.text});
       });
       
     });
-    /*
-    
+        
+    socket.on('disconnect', function () {
+        stream.stop();
+    });
 
-    
-    */
 
 });
 
+/*
+io.sockets.on('connection', function (socket) {
+  var tweets = setInterval(function () {
+    getBieberTweet(function (tweet) {
+      socket.volatile.emit('bieber tweet', tweet);
+    });
+  }, 100);
+
+  socket.on('disconnect', function () {
+    clearInterval(tweets);
+  });
+});
+*/
 
 
 
