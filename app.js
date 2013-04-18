@@ -110,7 +110,8 @@ app.get('/twitter_callback', function(req, res, next){
 		function(error, oauth_access_token, oauth_access_token_secret, results){
 			if (error){
 				console.log(error);
-				res.send("yeah something broke.");
+				//res.send("yeah something broke.");
+                res.redirect("/");
 			} else {
 				req.session.oauth.access_token = oauth_access_token;
 				req.session.oauth.access_token_secret = oauth_access_token_secret;
