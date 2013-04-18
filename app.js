@@ -142,8 +142,10 @@ socketIo.on('connection', function(socket) {
     var stream;
     
     socket.on('setSymbol', function (data) {
-      
-      
+            
+      /*setInterval(function(){
+          socket.emit('symbolTweet',{name: Date.now()+data.symbol, tweetText: data.symbol});
+      }, 1000);*/
 
       //create a twitter stream with tweets about the specified stock symbol
       stream = twitObj.stream('statuses/filter', { track: data.symbol });
@@ -154,10 +156,19 @@ socketIo.on('connection', function(socket) {
         socket.emit('symbolTweet',{name: tweet.user.name, tweetText: tweet.text});
       });
       
+      stream.on('disconnect', function (disconnectMessage) {
+          //Emitted when a disconnect message comes from Twitter. 
+          //This occurs if you have multiple streams connected to Twitter's API. 
+          //Upon receiving a disconnect message from Twitter, Twit will close the connection 
+          //and emit this event with the message details received from twitter.
+          //console.log(disconnectMessage);
+          socket.emit('symbolTweet',{name: JSON.stringify(disconnectMessage), tweetText: JSON.stringify(disconnectMessage)});
+        });
+      
     });
         
     socket.on('disconnect', function () {
-        stream.stop();
+        //stream.stop();
     });
 
 
