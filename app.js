@@ -87,7 +87,8 @@ app.get('/twitter_auth', function(req, res){
     oa.getOAuthRequestToken(function(error, oauth_token, oauth_token_secret, results){
 		if (error) {
 			console.log(error);
-			res.send("yeah no. didn't work.")
+			//res.send("yeah no. didn't work.")
+            res.redirect("/");
 		}
 		else {
 			req.session.oauth = {};
